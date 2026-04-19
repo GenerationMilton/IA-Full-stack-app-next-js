@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import OpenAI from 'openai';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -7,20 +6,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+    const fastAPIUrl = process.env.FASTAPI_URL || 'http://localhost:8000';
+    const response = await fetch(`${fastAPIUrl}/api`);
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [
-        { role: 'user', content: 'Come up with a new business idea for AI Agents' }
-      ],
-    });
+    if (!response.ok) {
+      throw new Error(`FastAPI responded with status: ${response.status}`);
+    }
 
-    const idea = completion.choices[0]?.message?.content || 'No idea generated';
+    // Set SSE headers for streaming
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
 
-    res.status(200).send(idea);
+    // Pipe the FastAPI streaming response to the client
+    const reader = response.body?.getReader();
+    if (!reader) {
+      res.status(500).json({ error: 'No response body from FastAPI' });
+      return;
+    }
+
+    const decoder = new TextDecoder();
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        res.write(chunk);
+      }
+    } finally {
+      reader.cancel();
+    }
+
+    res.end();
   } catch (error) {
     console.error('Error generating business idea:', error);
     res.status(500).json({ error: 'Failed to generate business idea' });
