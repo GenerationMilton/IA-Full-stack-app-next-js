@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import OpenAI from 'openai';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -6,17 +7,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // Proxy the request to FastAPI backend
-    const response = await fetch('http://localhost:8000/api');
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
 
-    if (!response.ok) {
-      throw new Error(`FastAPI responded with status: ${response.status}`);
-    }
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: [
+        { role: 'user', content: 'Come up with a new business idea for AI Agents' }
+      ],
+    });
 
-    const data = await response.text();
-    res.status(200).send(data);
+    const idea = completion.choices[0]?.message?.content || 'No idea generated';
+
+    res.status(200).send(idea);
   } catch (error) {
-    console.error('Error proxying to FastAPI:', error);
-    res.status(500).json({ error: 'Failed to fetch from FastAPI backend' });
+    console.error('Error generating business idea:', error);
+    res.status(500).json({ error: 'Failed to generate business idea' });
   }
 }

@@ -1,22 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Business Idea Generator SaaS
 
-## Getting Started
+A Next.js application that generates business ideas using OpenAI's GPT models. Built with TypeScript, Tailwind CSS, and deployed as a serverless application.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- 🤖 AI-powered business idea generation
+- 🎨 Modern UI with Tailwind CSS
+- ⚡ Serverless deployment ready
+- 📱 Responsive design
+- 🔒 Secure API key management
+
+## Tech Stack
+
+- **Frontend:** Next.js 16, React 19, TypeScript
+- **Styling:** Tailwind CSS 3
+- **AI:** OpenAI GPT-3.5-turbo
+- **Deployment:** Serverless (Vercel, Netlify, etc.)
+
+## Development Setup
+
+### Prerequisites
+- Node.js 18+
+- npm or yarn
+- OpenAI API key
+
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Create a `.env.local` file with your OpenAI API key:
+   ```
+   OPENAI_API_KEY=your_api_key_here
+   ```
+
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+5. Open [http://localhost:3000](http://localhost:3000)
+
+## Production Deployment
+
+### Environment Variables
+Set the following environment variable in your deployment platform:
+
+```
+OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Build Commands
+```bash
+npm run build    # Build for production
+npm run start    # Start production server
+npm run lint     # Run ESLint
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Supported Platforms
+- ✅ Vercel
+- ✅ Netlify
+- ✅ Any serverless platform supporting Node.js
+
+## Project Structure
+
+```
+├── pages/                 # Next.js Pages Router
+│   ├── _app.tsx          # App wrapper
+│   ├── _document.tsx     # Document structure
+│   ├── index.tsx         # Home page
+│   └── api/              # API routes
+│       └── index.ts      # Business idea generator API
+├── public/               # Static assets
+├── styles/               # Global styles
+├── tailwind.config.js    # Tailwind configuration
+├── postcss.config.mjs    # PostCSS configuration
+└── tsconfig.json         # TypeScript configuration
+```
+
+## API Endpoints
+
+- `GET /api` - Generate a new business idea
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests and linting
+5. Submit a pull request
+
+## License
+
+MIT License - see LICENSE file for details.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
