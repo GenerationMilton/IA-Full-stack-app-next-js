@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import OpenAI from 'openai';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -6,40 +7,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const fastAPIUrl = process.env.FASTAPI_URL || 'http://localhost:8000';
-    const response = await fetch(`${fastAPIUrl}/api`);
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+   
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-5.4-nano',
+      messages: [
+        { role: 'user', content: 'Come up with a new business idea for AI Agents' }
+      ],
+      stream: true,
+    });
 
-    if (!response.ok) {
-      throw new Error(`FastAPI responded with status: ${response.status}`);
-    }
-
-    // Set SSE headers for streaming
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders?.();
 
-    // Pipe the FastAPI streaming response to the client
-    const reader = response.body?.getReader();
-    if (!reader) {
-      res.status(500).json({ error: 'No response body from FastAPI' });
-      return;
-    }
-
-    const decoder = new TextDecoder();
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        res.write(chunk);
+    for await (const chunk of completion) {
+      const text = chunk.choices[0]?.delta?.content;
+      if (text) {
+        res.write(`data: ${text}\n\n`);
       }
-    } finally {
-      reader.cancel();
     }
 
     res.end();
   } catch (error) {
     console.error('Error generating business idea:', error);
-    res.status(500).json({ error: 'Failed to generate business idea' });
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Failed to generate business idea' });
+    } else {
+      res.write('event: error\ndata: Failed to generate business idea\n\n');
+      res.end();
+    }
   }
 }
