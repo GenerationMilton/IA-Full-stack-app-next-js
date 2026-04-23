@@ -48,7 +48,12 @@ function ConsultationForm() {
                 notes,
             }),
             onmessage(ev) {
-                buffer += ev.data;
+                // Server sends JSON-encoded chunks to preserve markdown whitespace/newlines.
+                try {
+                    buffer += JSON.parse(ev.data) as string;
+                } catch {
+                    buffer += ev.data;
+                }
                 setOutput(buffer);
             },
             onclose() { 
